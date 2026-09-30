@@ -8,6 +8,7 @@ Modular SQL injection automation tool.
 - **Multi-DB support** — Oracle, MySQL, PostgreSQL, MSSQL, SQLite, MariaDB
 - **Blind SQLi (Error-based)** — extracts data character by character using conditional errors
 - **Blind SQLi (Boolean-based)** — extracts data using true/false page response signals
+- **Blind SQLi (Time-based)** — extracts data using response time delays
 
 ## Project Structure
 
@@ -17,6 +18,7 @@ VenomSQL/
 ├── dbConfig.py      # Database-specific syntax configurations
 ├── blindError.py    # Blind SQLi (error-based) module
 ├── blindBoolean.py  # Blind SQLi (boolean-based) module
+├── blindTime.py     # Blind SQLi (time-based) module
 └── .gitignore
 ```
 
@@ -34,7 +36,11 @@ print(sqli.found_password)
 ## Roadmap
 
 - [x] Blind SQLi (Boolean-based)
+- [x] Blind SQLi (Time-based)
+- [ ] Flexible injection points (cookie, URL param, POST body, header)
+- [ ] Password length detection
+- [ ] Binary search per character (6 requests instead of 36)
 - [ ] UNION-based SQLi
-- [ ] Time-based Blind SQLi
-- [ ] Auto-detect DB type
+- [ ] Proxy support (route through Burp)
 - [ ] CLI interface
+- [ ] Auto-detect DB type
