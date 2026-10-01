@@ -1,6 +1,5 @@
 from .main import BaseSQLi
 from .dbConfig import DB_CONFIG
-import string
 import time
 
 class BlindTimeBased(BaseSQLi):

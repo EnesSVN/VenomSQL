@@ -1,6 +1,5 @@
 from .main import BaseSQLi
 from .dbConfig import DB_CONFIG
-import string
 
 class BlindBooleanBased(BaseSQLi):
     found_password = ""

@@ -12,7 +12,7 @@ Modular SQL injection automation tool.
 - **Blind SQLi (Boolean-based)** — extracts data using true/false page response signals
 - **Blind SQLi (Time-based)** — extracts data using response time delays
 - **Auto password length detection** — detects length before brute forcing
-- **Extended charset** — lowercase, uppercase, digits, and special characters
+- **Binary search extraction** — ~7 requests per character instead of 70+ (brute force)
 
 ## Project Structure
 
@@ -64,7 +64,7 @@ print(sqli.found_password)
 - [x] Flexible injection points (cookie, URL param, POST body, header)
 - [x] DB-aware concat, comment, limit_one config
 - [x] Password length detection
-- [ ] Binary search per character (6 requests instead of 36)
+- [x] Binary search per character (~7 requests instead of 70+)
 - [ ] UNION-based SQLi
 - [ ] Proxy support (route through Burp)
 - [ ] CLI interface
