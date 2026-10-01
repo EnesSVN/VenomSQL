@@ -11,12 +11,15 @@ Modular SQL injection automation tool.
 - **Blind SQLi (Error-based)** — extracts data using conditional errors (500 vs 200)
 - **Blind SQLi (Boolean-based)** — extracts data using true/false page response signals
 - **Blind SQLi (Time-based)** — extracts data using response time delays
+- **Auto password length detection** — detects length before brute forcing
+- **Extended charset** — lowercase, uppercase, digits, and special characters
 
 ## Project Structure
 
 ```
 VenomSQL/
-├── main.py          # BaseSQLi — base class, send(), build_payload()
+├── __init__.py      # Package exports
+├── main.py          # BaseSQLi — base class, send(), detect_length(), build_condition_payload()
 ├── dbConfig.py      # Database-specific syntax configurations
 ├── blindError.py    # Blind SQLi (error-based) module
 ├── blindBoolean.py  # Blind SQLi (boolean-based) module
@@ -27,7 +30,7 @@ VenomSQL/
 ## Usage
 
 ```python
-from blindError import BlindErrorBased
+from VenomSQL import BlindErrorBased
 
 inject_point = {"location": "cookie", "param": "TrackingId"}
 extra_cookies = {"session": "xyz789"}
@@ -60,7 +63,7 @@ print(sqli.found_password)
 - [x] Blind SQLi (Time-based)
 - [x] Flexible injection points (cookie, URL param, POST body, header)
 - [x] DB-aware concat, comment, limit_one config
-- [ ] Password length detection
+- [x] Password length detection
 - [ ] Binary search per character (6 requests instead of 36)
 - [ ] UNION-based SQLi
 - [ ] Proxy support (route through Burp)
