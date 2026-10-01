@@ -11,6 +11,7 @@ Modular SQL injection automation tool.
 - **Blind SQLi (Error-based)** — extracts data using conditional errors (500 vs 200)
 - **Blind SQLi (Boolean-based)** — extracts data using true/false page response signals
 - **Blind SQLi (Time-based)** — extracts data using response time delays
+- **UNION-based SQLi** — extracts data directly from response (single request per query)
 - **Auto password length detection** — detects length before brute forcing
 - **Binary search extraction** — ~7 requests per character instead of 70+ (brute force)
 
@@ -24,6 +25,7 @@ VenomSQL/
 ├── blindError.py    # Blind SQLi (error-based) module
 ├── blindBoolean.py  # Blind SQLi (boolean-based) module
 ├── blindTime.py     # Blind SQLi (time-based) module
+├── unionBased.py    # UNION-based SQLi module
 └── .gitignore
 ```
 
@@ -65,7 +67,7 @@ print(sqli.found_password)
 - [x] DB-aware concat, comment, limit_one config
 - [x] Password length detection
 - [x] Binary search per character (~7 requests instead of 70+)
-- [ ] UNION-based SQLi
+- [x] UNION-based SQLi
 - [ ] Proxy support (route through Burp)
 - [ ] CLI interface
 - [ ] Auto-detect DB type
