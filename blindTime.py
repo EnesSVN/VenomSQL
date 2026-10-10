@@ -3,8 +3,8 @@ from .dbConfig import DB_CONFIG
 import time
 
 class BlindTimeBased(BaseSQLi):
-    def __init__(self, url, inject_point, targetTable, db_type="oracle", extra_cookies=None, delay=5):
-        super().__init__(url, targetTable, db_type, inject_point, extra_cookies)
+    def __init__(self, url, inject_point, targetTable, db_type="oracle", extra_cookies=None, delay=5, proxy=None, verify=True, timeout=30):
+        super().__init__(url, targetTable, db_type, inject_point, extra_cookies, proxy, verify, timeout)
         self.found_password = ""
         self.delay = delay
         self.signal = DB_CONFIG[self.db_type]['sleep'].format(delay=self.delay)

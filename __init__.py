@@ -4,5 +4,6 @@ from .blindBoolean import BlindBooleanBased
 from .blindError import BlindErrorBased
 from .blindTime import BlindTimeBased
 from .unionBased import UnionBased
+from .detectDb import DbDetector
 
-__all__ = ["BaseSQLi", "DB_CONFIG", "BlindBooleanBased", "BlindErrorBased", "BlindTimeBased", "UnionBased"]
+__all__ = ["BaseSQLi", "DB_CONFIG", "BlindBooleanBased", "BlindErrorBased", "BlindTimeBased", "UnionBased", "DbDetector"]
